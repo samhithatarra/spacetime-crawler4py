@@ -20,9 +20,7 @@ def extract_next_links(url, resp):
             lst.append(link)
 
 
-    
-    
-    #return list()
+
     return lst
 
 def is_valid(url):

@@ -1,5 +1,7 @@
 import re
 from urllib.parse import urlparse
+from lxml import html
+import requests
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
@@ -7,18 +9,35 @@ def scraper(url, resp):
 
 def extract_next_links(url, resp):
     # Implementation requred.
-    return list()
+    lst = []
+
+    request = requests.get(url)
+    pages = html.fromstring(request.content)
+    if (resp.status ==200 and resp.raw_response.content == None):
+        print("THIS IS A 200 AND NONE ERROR")
+    elif (resp.status == 200 and resp.raw_response.content != None) or (resp.status != 200):
+        for link in pages.xpath('//a/@href'):
+            lst.append(link)
+
+
+    
+    
+    #return list()
+    return lst
 
 def is_valid(url):
+    
     try:
+        
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
+        
+        if not re.match(r"^((?!ics.uci.edu|stat.uci.edu|cs.uci.edu|informatics.uci.edu).)*$", parsed.netloc.lower()) or (not re.match(r"^((?!today.uci.edu).)*$", parsed.netloc.lower()) and re.match(r'^/department/information_computer_sciences$', parsed.path.lower())):
+        
 
-        if re.match(
-            r".*\.(ics.uci.edu/|cs.uci.edu/|informatics.uci.edu/"
-            + r"|stat.uci.edu/|today.uci.edu/department/information_computer_sciences/)$", parsed.path.lower())
-  
+        
+        
             return not re.match(
                 r".*\.(css|js|bmp|gif|jpe?g|ico"
                 + r"|png|tiff?|mid|mp2|mp3|mp4"
@@ -28,8 +47,10 @@ def is_valid(url):
                 + r"|epub|dll|cnf|tgz|sha1"
                 + r"|thmx|mso|arff|rtf|jar|csv"
                 + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
+            
         return False
-        
+    
     except TypeError:
         print ("TypeError for ", parsed)
         raise
+
